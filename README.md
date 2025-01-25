@@ -2,7 +2,13 @@
 
 MonRed is a self-hosted platform that allows you to deploy and manage MongoDB and Redis instances with ease. It provides a simple web interface to create, monitor, and manage your database containers.
 
-![MonRed Dashboard](screenshots/landing.png)
+## Screenshots
+
+### Landing Page
+![MonRed Landing](screenshots/landing.png)
+
+### Container Management
+![MonRed Containers](screenshots/list.png)
 
 ## Features
 
