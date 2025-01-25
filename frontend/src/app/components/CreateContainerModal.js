@@ -19,7 +19,7 @@ const REDIS_VERSIONS = [
   '5.0'
 ];
 
-export default function CreateContainerModal({ show, handleClose, handleCreate, isCreating, remainingLimits }) {
+export default function CreateContainerModal({ show, handleClose, handleCreate, isCreating }) {
   const [formData, setFormData] = useState({
     name: '',
     type: 'mongodb',
@@ -41,14 +41,6 @@ export default function CreateContainerModal({ show, handleClose, handleCreate, 
     setFormData({ name: '', type: 'mongodb', version: '7.0' }); // reset form
   };
 
-  const getTypeHelpText = (type) => {
-    const remaining = remainingLimits?.[type] || 0;
-    if (remaining <= 0) {
-      return <span className="text-danger">You've reached the free tier limit for {type} containers</span>;
-    }
-    return <span className="text-muted">{remaining} free {type} container remaining</span>;
-  };
-
   return (
     <Modal show={show} onHide={handleClose}>
       <Modal.Header closeButton={!isCreating}>
@@ -56,11 +48,6 @@ export default function CreateContainerModal({ show, handleClose, handleCreate, 
       </Modal.Header>
       <Form onSubmit={handleSubmit}>
         <Modal.Body>
-          <Alert variant="info">
-            <i className="fas fa-info-circle me-2"></i>
-            Free tier includes 1 MongoDB and 1 Redis container
-          </Alert>
-
           <Form.Group className="mb-3">
             <Form.Label>Container Name</Form.Label>
             <Form.Control
@@ -83,7 +70,6 @@ export default function CreateContainerModal({ show, handleClose, handleCreate, 
               <option value="mongodb">MongoDB</option>
               <option value="redis">Redis</option>
             </Form.Select>
-            <Form.Text>{getTypeHelpText(formData.type)}</Form.Text>
           </Form.Group>
 
           <Form.Group className="mb-3">
@@ -109,8 +95,8 @@ export default function CreateContainerModal({ show, handleClose, handleCreate, 
           </Button>
           <Button 
             variant="primary" 
-            type="submit" 
-            disabled={isCreating || remainingLimits?.[formData.type] <= 0}
+            type="submit"
+            disabled={isCreating}
           >
             {isCreating ? (
               <>
@@ -124,9 +110,7 @@ export default function CreateContainerModal({ show, handleClose, handleCreate, 
                 />
                 Creating...
               </>
-            ) : (
-              'Create Container'
-            )}
+            ) : 'Create Container'}
           </Button>
         </Modal.Footer>
       </Form>

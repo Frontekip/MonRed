@@ -10,6 +10,7 @@ import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 import TransferContainerModal from '../components/TransferContainerModal';
 import ContainerLogsModal from '../components/ContainerLogsModal';
 import React from 'react';
+import ApiService from '../../services/api';
 
 // Custom Dropdown Toggle komponenti
 const ActionToggle = React.forwardRef(({ children, onClick }, ref) => (
@@ -79,13 +80,7 @@ export default function Dashboard() {
   const fetchContainers = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:4000/api/containers', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await res.json();
+      const data = await ApiService.getContainers();
       setContainers(data);
     } catch (err) {
       console.error('Error fetching containers:', err);
@@ -96,13 +91,7 @@ export default function Dashboard() {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:4000/api/containers/stats', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await res.json();
+      const data = await ApiService.getContainerStats();
       setStats(data);
     } catch (err) {
       console.error('Error fetching stats:', err);
@@ -112,25 +101,12 @@ export default function Dashboard() {
   const handleCreateContainer = async (containerData) => {
     setIsCreating(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:4000/api/containers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(containerData)
-      });
-      
-      if (!res.ok) {
-        throw new Error('Failed to create container');
-      }
-
+      await ApiService.createContainer(containerData);
       setShowModal(false);
       await fetchContainers();
       await fetchStats();
     } catch (err) {
-      console.error('Error creating container:', err);
+      throw err;
     } finally {
       setIsCreating(false);
     }
@@ -139,18 +115,7 @@ export default function Dashboard() {
   const handleDeleteContainer = async (containerId) => {
     setIsDeleting(containerId);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:4000/api/containers/${containerId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to delete container');
-      }
-
+      await ApiService.deleteContainer(containerId);
       await fetchContainers();
       await fetchStats();
     } catch (err) {
@@ -168,20 +133,7 @@ export default function Dashboard() {
   const handleContainerAction = async (containerId, action) => {
     setIsActionLoading({ id: containerId, action });
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:4000/api/containers/${containerId}/action`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ action })
-      });
-
-      if (!res.ok) {
-        throw new Error(`Failed to ${action} container`);
-      }
-
+      await ApiService.containerAction(containerId, action);
       await fetchContainers();
     } catch (err) {
       console.error(`Error ${action}ing container:`, err);
@@ -213,24 +165,8 @@ export default function Dashboard() {
 
     setIsTransferring(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:4000/api/containers/${containerToTransfer._id}/transfer`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ targetEmail })
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Failed to transfer container');
-      }
-
+      await ApiService.transferContainer(containerToTransfer._id, targetEmail);
       await fetchContainers();
-      setShowTransferModal(false);
-      setContainerToTransfer(null);
     } catch (err) {
       throw err;
     } finally {
